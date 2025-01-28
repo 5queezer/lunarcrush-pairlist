@@ -174,8 +174,8 @@ app.get("/fetchPairs/:exchange", async (req, res) => {
     const sortedLunarcrush = sortLunarcrushData(lunarcrushData, lunarMode);
     const lunarcrushCoins = sortedLunarcrush.map((coin) => coin.symbol);
 
-    console.log(`🔹 ${exchangeName} Pairs (${marketType}):`, exchangePairs);
-    console.log(`🔹 LunarCrush Coins (${lunarMode}):`, lunarcrushCoins);
+    console.debug(`🔹 ${exchangeName} Pairs (${marketType}):`, exchangePairs);
+    console.debug(`🔹 LunarCrush Coins (${lunarMode}):`, lunarcrushCoins);
 
     const intersection = lunarcrushCoins
       .map(
