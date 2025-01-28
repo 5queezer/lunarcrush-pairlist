@@ -6,7 +6,7 @@
     "start": "node functions/index.js",
     "dev": "nodemon functions/index.js",
     "serve": "firebase emulators:start",
-    "deploy": "firebase deploy --only functions",
+    "deploy": "firebase deploy --only hosting",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
