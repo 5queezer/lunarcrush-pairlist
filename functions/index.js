@@ -11,6 +11,12 @@ app.use(express.json());
 const BEARER_TOKEN = process.env.LUNARCRUSH_TOKEN;
 if (!BEARER_TOKEN) throw new Error("LunarCrush token not provided");
 
+const cache = {
+  lunarcrush: {},
+  binance: {},
+};
+const CACHE_TTL = 1 * 60 * 1000; // 1 minute(s)
+
 const MarketType = {
   SPOT: "spot",
   MARGIN: "margin",
@@ -31,19 +37,23 @@ const LunarcrushMode = {
   ALT_RANK_PERC: "alt_rank_perc",
 };
 
-// Fetch Binance Coins
 const fetchBinanceCoins = async (
   quoteAsset = "USDT",
   marketType = MarketType.SPOT
 ) => {
-  if (!BinanceEndpoints[marketType]) {
-    throw new Error(`Invalid market_type: ${marketType}`);
+  const cacheKey = `${marketType}_${quoteAsset}`;
+  if (
+    cache.binance[cacheKey] &&
+    Date.now() - cache.binance[cacheKey].timestamp < CACHE_TTL
+  ) {
+    console.log(`⚡ Returning cached Binance data for ${cacheKey}`);
+    return cache.binance[cacheKey].data;
   }
 
   const response = await axios.get(BinanceEndpoints[marketType]);
   const data = response.data;
-
   let pairs = [];
+
   if (marketType === MarketType.SPOT) {
     pairs = data.symbols
       .filter(
@@ -67,11 +77,19 @@ const fetchBinanceCoins = async (
       .map((pair) => `${pair.baseAsset}/${pair.quoteAsset}`);
   }
 
+  cache.binance[cacheKey] = { data: pairs, timestamp: Date.now() };
   return pairs;
 };
 
-// Fetch LunarCrush Coins
-const fetchLunarcrushCoins = async (mode = LunarcrushMode.ALT_RANK) => {
+const fetchLunarcrushCoins = async () => {
+  if (
+    cache.lunarcrush.data &&
+    Date.now() - cache.lunarcrush.timestamp < CACHE_TTL
+  ) {
+    console.log(`⚡ Returning cached LunarCrush data`);
+    return cache.lunarcrush.data;
+  }
+
   const response = await axios.get(
     "https://lunarcrush.com/api4/public/coins/list/v1",
     {
@@ -83,21 +101,25 @@ const fetchLunarcrushCoins = async (mode = LunarcrushMode.ALT_RANK) => {
   if (!data.length)
     throw new Error("LunarCrush API returned an empty dataset.");
 
-  let sortedData = [];
+  cache.lunarcrush = { data, timestamp: Date.now() };
+  return data;
+};
+
+const sortLunarcrushData = (data, mode) => {
   if (mode === LunarcrushMode.ALT_RANK) {
-    sortedData = data
+    return data
       .filter((d) => d.alt_rank)
       .sort((a, b) => a.alt_rank - b.alt_rank);
   } else if (mode === LunarcrushMode.GALAXY_SCORE) {
-    sortedData = data
+    return data
       .filter((d) => d.galaxy_score)
       .sort((a, b) => b.galaxy_score - a.galaxy_score);
   } else if (mode === LunarcrushMode.SENTIMENT) {
-    sortedData = data
+    return data
       .filter((d) => d.sentiment)
       .sort((a, b) => b.sentiment - a.sentiment);
   } else if (mode === LunarcrushMode.GALAXY_SCORE_PERC) {
-    sortedData = data
+    return data
       .filter((d) => d.galaxy_score && d.galaxy_score_previous)
       .map((d) => ({
         ...d,
@@ -106,7 +128,7 @@ const fetchLunarcrushCoins = async (mode = LunarcrushMode.ALT_RANK) => {
       }))
       .sort((a, b) => b.galaxy_score_change - a.galaxy_score_change);
   } else if (mode === LunarcrushMode.ALT_RANK_PERC) {
-    sortedData = data
+    return data
       .filter((d) => d.alt_rank && d.alt_rank_previous)
       .map((d) => ({
         ...d,
@@ -117,16 +139,8 @@ const fetchLunarcrushCoins = async (mode = LunarcrushMode.ALT_RANK) => {
   } else {
     throw new Error(`Invalid mode: ${mode}`);
   }
-
-  return sortedData.map((coin) => coin.symbol);
 };
 
-// Test Route
-app.get("/", (req, res) => {
-  res.json({ message: "API is working! 🚀" });
-});
-
-// Main API Route
 app.get("/fetchPairs", async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 50;
@@ -134,23 +148,35 @@ app.get("/fetchPairs", async (req, res) => {
     const marketType = req.query.marketType || MarketType.FUTURES;
     const lunarMode = req.query.lunarMode || LunarcrushMode.ALT_RANK;
 
-    const [binancePairs, lunarcrushCoins] = await Promise.all([
+    console.log(`🔍 Fetching data with params:`, {
+      quoteAsset,
+      marketType,
+      lunarMode,
+    });
+
+    const [binancePairs, lunarcrushData] = await Promise.all([
       fetchBinanceCoins(quoteAsset, marketType),
-      fetchLunarcrushCoins(lunarMode),
+      fetchLunarcrushCoins(),
     ]);
+
+    const sortedLunarcrush = sortLunarcrushData(lunarcrushData, lunarMode);
+    const lunarcrushCoins = sortedLunarcrush.map((coin) => coin.symbol);
 
     console.log(`🔹 Binance Pairs (${marketType}):`, binancePairs);
     console.log(`🔹 LunarCrush Coins (${lunarMode}):`, lunarcrushCoins);
 
-    const intersection = binancePairs.filter((pair) =>
-      lunarcrushCoins.includes(pair.split("/")[0])
-    );
+    const intersection = lunarcrushCoins
+      .map(
+        (coin) =>
+          binancePairs.find((pair) => pair.startsWith(`${coin}/`)) || null
+      )
+      .filter(Boolean);
 
     console.log(`✅ Matching Pairs:`, intersection);
 
     res.json({
       pairs: intersection.slice(0, limit),
-      refresh_period: 0,
+      refresh_period: CACHE_TTL / 1000,
     });
   } catch (error) {
     console.error(`❌ Error in /fetchPairs:`, error);
@@ -158,5 +184,4 @@ app.get("/fetchPairs", async (req, res) => {
   }
 });
 
-// Export Firebase Function
 exports.api = functions.https.onRequest(app);
