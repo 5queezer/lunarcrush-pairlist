@@ -38,8 +38,8 @@ const LunarcrushMode = {
 };
 
 const fetchBinanceCoins = async (
-  quoteAsset = "USDT",
-  marketType = MarketType.SPOT
+    quoteAsset = "USDT",
+    marketType = MarketType.SPOT,
 ) => {
   const cacheKey = `${marketType}_${quoteAsset}`;
   if (
@@ -56,28 +56,28 @@ const fetchBinanceCoins = async (
 
   if (marketType === MarketType.SPOT) {
     pairs = data.symbols
-      .filter(
-        (symbol) =>
-          symbol.quoteAsset === quoteAsset && symbol.status === "TRADING"
-      )
-      .map((symbol) => `${symbol.baseAsset}/${symbol.quoteAsset}`);
+        .filter(
+            (symbol) =>
+              symbol.quoteAsset === quoteAsset && symbol.status === "TRADING",
+        )
+        .map((symbol) => `${symbol.baseAsset}/${symbol.quoteAsset}`);
   } else if (marketType === MarketType.FUTURES) {
     pairs = data.symbols
-      .filter(
-        (symbol) =>
-          symbol.quoteAsset === quoteAsset && symbol.status === "TRADING"
-      )
-      .map(
-        (symbol) =>
-          `${symbol.baseAsset}/${symbol.quoteAsset}:${symbol.quoteAsset}`
-      );
+        .filter(
+            (symbol) =>
+              symbol.quoteAsset === quoteAsset && symbol.status === "TRADING",
+        )
+        .map(
+            (symbol) =>
+              `${symbol.baseAsset}/${symbol.quoteAsset}:${symbol.quoteAsset}`,
+        );
   } else if (marketType === MarketType.MARGIN) {
     pairs = data
-      .filter((pair) => pair.quoteAsset === quoteAsset && pair.isMarginTrade)
-      .map((pair) => `${pair.baseAsset}/${pair.quoteAsset}`);
+        .filter((pair) => pair.quoteAsset === quoteAsset && pair.isMarginTrade)
+        .map((pair) => `${pair.baseAsset}/${pair.quoteAsset}`);
   }
 
-  cache.binance[cacheKey] = { data: pairs, timestamp: Date.now() };
+  cache.binance[cacheKey] = {data: pairs, timestamp: Date.now()};
   return pairs;
 };
 
@@ -91,51 +91,52 @@ const fetchLunarcrushCoins = async () => {
   }
 
   const response = await axios.get(
-    "https://lunarcrush.com/api4/public/coins/list/v1",
-    {
-      headers: { Authorization: `Bearer ${BEARER_TOKEN}` },
-    }
+      "https://lunarcrush.com/api4/public/coins/list/v1",
+      {
+        headers: {Authorization: `Bearer ${BEARER_TOKEN}`},
+      },
   );
 
   const data = response.data.data || [];
-  if (!data.length)
+  if (!data.length) {
     throw new Error("LunarCrush API returned an empty dataset.");
+  }
 
-  cache.lunarcrush = { data, timestamp: Date.now() };
+  cache.lunarcrush = {data, timestamp: Date.now()};
   return data;
 };
 
 const sortLunarcrushData = (data, mode) => {
   if (mode === LunarcrushMode.ALT_RANK) {
     return data
-      .filter((d) => d.alt_rank)
-      .sort((a, b) => a.alt_rank - b.alt_rank);
+        .filter((d) => d.alt_rank)
+        .sort((a, b) => a.alt_rank - b.alt_rank);
   } else if (mode === LunarcrushMode.GALAXY_SCORE) {
     return data
-      .filter((d) => d.galaxy_score)
-      .sort((a, b) => b.galaxy_score - a.galaxy_score);
+        .filter((d) => d.galaxy_score)
+        .sort((a, b) => b.galaxy_score - a.galaxy_score);
   } else if (mode === LunarcrushMode.SENTIMENT) {
     return data
-      .filter((d) => d.sentiment)
-      .sort((a, b) => b.sentiment - a.sentiment);
+        .filter((d) => d.sentiment)
+        .sort((a, b) => b.sentiment - a.sentiment);
   } else if (mode === LunarcrushMode.GALAXY_SCORE_PERC) {
     return data
-      .filter((d) => d.galaxy_score && d.galaxy_score_previous)
-      .map((d) => ({
-        ...d,
-        galaxy_score_change:
+        .filter((d) => d.galaxy_score && d.galaxy_score_previous)
+        .map((d) => ({
+          ...d,
+          galaxy_score_change:
           (d.galaxy_score - d.galaxy_score_previous) / d.galaxy_score_previous,
-      }))
-      .sort((a, b) => b.galaxy_score_change - a.galaxy_score_change);
+        }))
+        .sort((a, b) => b.galaxy_score_change - a.galaxy_score_change);
   } else if (mode === LunarcrushMode.ALT_RANK_PERC) {
     return data
-      .filter((d) => d.alt_rank && d.alt_rank_previous)
-      .map((d) => ({
-        ...d,
-        alt_rank_change:
+        .filter((d) => d.alt_rank && d.alt_rank_previous)
+        .map((d) => ({
+          ...d,
+          alt_rank_change:
           (d.alt_rank_previous - d.alt_rank) / d.alt_rank_previous,
-      }))
-      .sort((a, b) => b.alt_rank_change - a.alt_rank_change);
+        }))
+        .sort((a, b) => b.alt_rank_change - a.alt_rank_change);
   } else {
     throw new Error(`Invalid mode: ${mode}`);
   }
@@ -166,11 +167,11 @@ app.get("/fetchPairs", async (req, res) => {
     console.log(`🔹 LunarCrush Coins (${lunarMode}):`, lunarcrushCoins);
 
     const intersection = lunarcrushCoins
-      .map(
-        (coin) =>
-          binancePairs.find((pair) => pair.startsWith(`${coin}/`)) || null
-      )
-      .filter(Boolean);
+        .map(
+            (coin) =>
+              binancePairs.find((pair) => pair.startsWith(`${coin}/`)) || null,
+        )
+        .filter(Boolean);
 
     console.log(`✅ Matching Pairs:`, intersection);
 
@@ -180,7 +181,7 @@ app.get("/fetchPairs", async (req, res) => {
     });
   } catch (error) {
     console.error(`❌ Error in /fetchPairs:`, error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({error: error.message});
   }
 });
 
