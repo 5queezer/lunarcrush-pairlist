@@ -1,18 +1,3 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * const {onCall} = require("firebase-functions/v2/https");
- * const {onDocumentWritten} = require("firebase-functions/v2/firestore");
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
-
-const { onRequest } = require("firebase-functions/v2/https");
-const logger = require("firebase-functions/logger");
-
-// Create and deploy your first functions
-// https://firebase.google.com/docs/functions/get-started
-
 const functions = require("firebase-functions");
 const express = require("express");
 const axios = require("axios");
@@ -70,8 +55,7 @@ const fetchBinanceCoins = async (
     pairs = data.symbols
       .filter(
         (symbol) =>
-          symbol.quoteAsset === quoteAsset &&
-          symbol.contractStatus === "TRADING"
+          symbol.quoteAsset === quoteAsset && symbol.status === "TRADING"
       )
       .map(
         (symbol) =>
@@ -129,13 +113,18 @@ const fetchLunarcrushCoins = async (mode = LunarcrushMode.ALT_RANK) => {
         alt_rank_change:
           (d.alt_rank_previous - d.alt_rank) / d.alt_rank_previous,
       }))
-      .sort((a, b) => b.alt_rank_change - a.alt_rank_change); // Higher improvement first
+      .sort((a, b) => b.alt_rank_change - a.alt_rank_change);
   } else {
     throw new Error(`Invalid mode: ${mode}`);
   }
 
   return sortedData.map((coin) => coin.symbol);
 };
+
+// Test Route
+app.get("/", (req, res) => {
+  res.json({ message: "API is working! 🚀" });
+});
 
 // Main API Route
 app.get("/fetchPairs", async (req, res) => {
@@ -150,15 +139,21 @@ app.get("/fetchPairs", async (req, res) => {
       fetchLunarcrushCoins(lunarMode),
     ]);
 
+    console.log(`🔹 Binance Pairs (${marketType}):`, binancePairs);
+    console.log(`🔹 LunarCrush Coins (${lunarMode}):`, lunarcrushCoins);
+
     const intersection = binancePairs.filter((pair) =>
       lunarcrushCoins.includes(pair.split("/")[0])
     );
+
+    console.log(`✅ Matching Pairs:`, intersection);
 
     res.json({
       pairs: intersection.slice(0, limit),
       refresh_period: 0,
     });
   } catch (error) {
+    console.error(`❌ Error in /fetchPairs:`, error);
     res.status(500).json({ error: error.message });
   }
 });
