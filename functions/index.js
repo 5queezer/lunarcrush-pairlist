@@ -1,6 +1,7 @@
 const functions = require("firebase-functions");
 const express = require("express");
 const axios = require("axios");
+const axiosRetry = require("axios-retry").default;
 const cors = require("cors");
 const ccxt = require("ccxt");
 require("dotenv").config();
@@ -8,6 +9,11 @@ require("dotenv").config();
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+axiosRetry(axios, {
+  retries: 10,
+  retryDelay: axiosRetry.exponentialDelay,
+});
 
 const BEARER_TOKEN = process.env.LUNARCRUSH_TOKEN;
 if (!BEARER_TOKEN) throw new Error("LunarCrush token not provided");
@@ -101,19 +107,24 @@ const fetchLunarcrushCoins = async () => {
     return cache.lunarcrush.data;
   }
 
-  const response = await axios.get(
-    "https://lunarcrush.com/api4/public/coins/list/v1",
-    {
-      headers: { Authorization: `Bearer ${BEARER_TOKEN}` },
-    }
-  );
+  try {
+    const response = await axios.get(
+      "https://lunarcrush.com/api4/public/coins/list/v1",
+      {
+        headers: { Authorization: `Bearer ${BEARER_TOKEN}` },
+      }
+    );
 
-  const data = response.data.data || [];
-  if (!data.length)
-    throw new Error("LunarCrush API returned an empty dataset.");
+    const data = response.data.data || [];
+    if (!data.length)
+      throw new Error("LunarCrush API returned an empty dataset.");
 
-  cache.lunarcrush = { data, timestamp: Date.now() };
-  return data;
+    cache.lunarcrush = { data, timestamp: Date.now() };
+    return data;
+  } catch (error) {
+    console.error("❌ Error fetching LunarCrush data:", error);
+    throw new Error("Failed to fetch LunarCrush data");
+  }
 };
 
 const sortLunarcrushData = (data, mode) => {
@@ -185,7 +196,7 @@ app.get("/fetchPairs/:exchange", async (req, res) => {
     console.log(
       `✅ Matching Pairs:`,
       intersection.length,
-      JSON.stringify(intersection)
+      JSON.stringify(intersection.slice(0, limit))
     );
 
     res.json({
