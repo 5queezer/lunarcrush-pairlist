@@ -16,7 +16,8 @@ const cache = {
   lunarcrush: {},
   exchanges: {},
 };
-const CACHE_TTL = 1 * 60 * 1000; // 1 minute(s)
+const CACHE_TTL_EXCHANGE = 60 * 60 * 1000; // 60 minute(s)
+const CACHE_TTL_LUNARCRUSH = 1 * 60 * 1000; // 1 minute(s)
 
 const MarketType = {
   SPOT: "spot",
@@ -64,7 +65,7 @@ const fetchExchangePairs = async (
   const cacheKey = `${exchangeName}_${marketType}_${quoteAsset}`;
   if (
     cache.exchanges[cacheKey] &&
-    Date.now() - cache.exchanges[cacheKey].timestamp < CACHE_TTL
+    Date.now() - cache.exchanges[cacheKey].timestamp < CACHE_TTL_EXCHANGE
   ) {
     console.log(`⚡ Returning cached ${exchangeName} data for ${cacheKey}`);
     return cache.exchanges[cacheKey].data;
@@ -94,7 +95,7 @@ const fetchExchangePairs = async (
 const fetchLunarcrushCoins = async () => {
   if (
     cache.lunarcrush.data &&
-    Date.now() - cache.lunarcrush.timestamp < CACHE_TTL
+    Date.now() - cache.lunarcrush.timestamp < CACHE_TTL_LUNARCRUSH
   ) {
     console.log(`⚡ Returning cached LunarCrush data`);
     return cache.lunarcrush.data;
@@ -174,9 +175,6 @@ app.get("/fetchPairs/:exchange", async (req, res) => {
     const sortedLunarcrush = sortLunarcrushData(lunarcrushData, lunarMode);
     const lunarcrushCoins = sortedLunarcrush.map((coin) => coin.symbol);
 
-    console.debug(`🔹 ${exchangeName} Pairs (${marketType}):`, exchangePairs);
-    console.debug(`🔹 LunarCrush Coins (${lunarMode}):`, lunarcrushCoins);
-
     const intersection = lunarcrushCoins
       .map(
         (coin) =>
@@ -184,11 +182,22 @@ app.get("/fetchPairs/:exchange", async (req, res) => {
       )
       .filter(Boolean);
 
-    console.log(`✅ Matching Pairs:`, intersection);
+    console.log(
+      `✅ Matching Pairs:`,
+      intersection.length,
+      JSON.stringify(
+        intersection.length > 5
+          ? [
+              ...intersection.slice(0, 5),
+              `and ${intersection.length - 5} more...`,
+            ]
+          : JSON.stringify(intersection)
+      )
+    );
 
     res.json({
-      pairs: intersection.slice(0, limit),
-      refresh_period: CACHE_TTL / 1000,
+      pairs: [intersection.slice(0, limit)],
+      refresh_period: CACHE_TTL_LUNARCRUSH / 1000,
     });
   } catch (error) {
     console.error(`❌ Error in /fetchPairs/:exchange:`, error);
