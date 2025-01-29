@@ -1,10 +1,11 @@
-const functions = require("firebase-functions");
-const express = require("express");
-const axios = require("axios");
-const axiosRetry = require("axios-retry").default;
-const cors = require("cors");
-const ccxt = require("ccxt");
-require("dotenv").config();
+import express from "express";
+import axios from "axios";
+import axiosRetry from "axios-retry";
+import cors from "cors";
+import ccxt from "ccxt";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const app = express();
 app.use(cors());
@@ -208,8 +209,6 @@ app.get("/fetchPairs/:exchange", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
-exports.api = functions.https.onRequest(app);
 
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
