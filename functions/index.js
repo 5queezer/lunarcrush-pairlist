@@ -185,18 +185,11 @@ app.get("/fetchPairs/:exchange", async (req, res) => {
     console.log(
       `✅ Matching Pairs:`,
       intersection.length,
-      JSON.stringify(
-        intersection.length > 5
-          ? [
-              ...intersection.slice(0, 5),
-              `and ${intersection.length - 5} more...`,
-            ]
-          : JSON.stringify(intersection)
-      )
+      JSON.stringify(intersection)
     );
 
     res.json({
-      pairs: [intersection.slice(0, limit)],
+      pairs: intersection.slice(0, limit),
       refresh_period: CACHE_TTL_LUNARCRUSH / 1000,
     });
   } catch (error) {
