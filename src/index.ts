@@ -31,7 +31,17 @@ interface Market {
   active: boolean;
 }
 
-const cache = {
+interface LunarcrushCoin {
+  symbol: string;
+  [key: string]: any;
+}
+
+interface Cache {
+  lunarcrush: CacheData<any> | null;
+  exchanges: { [key: string]: CacheData<string[]> };
+}
+
+const cache: Cache = {
   lunarcrush: null,
   exchanges: {},
 };
@@ -64,7 +74,7 @@ const SUPPORTED_EXCHANGES = {
 };
 
 const fetchExchangePairs = async (
-  exchangeName,
+  exchangeName: string,
   quoteAsset = "USDT",
   marketType = MarketType.SPOT
 ) => {
@@ -73,7 +83,10 @@ const fetchExchangePairs = async (
   }
 
   const cacheKey = `${exchangeName}_${marketType}_${quoteAsset}`;
-  if (cache.exchanges[cacheKey] && Date.now() - cache.exchanges[cacheKey].timestamp < CACHE_TTL_EXCHANGE) {
+  if (
+    cache.exchanges[cacheKey] &&
+    Date.now() - cache.exchanges[cacheKey].timestamp < CACHE_TTL_EXCHANGE
+  ) {
     console.log(`⚡ Returning cached ${exchangeName} data for ${cacheKey}`);
     return cache.exchanges[cacheKey].data;
   }
@@ -84,9 +97,16 @@ const fetchExchangePairs = async (
     const markets = Object.values(exchange.markets) as Market[];
 
     const pairs = markets
-      .filter((market) => market.type === CCXTMarketType[marketType] && market.quote === quoteAsset && market.active)
+      .filter(
+        (market) =>
+          market.type === CCXTMarketType[marketType] &&
+          market.quote === quoteAsset &&
+          market.active
+      )
       .map((market) => `${market.base}/${market.quote}`)
-      .map((pair) => (marketType === MarketType.FUTURES ? `${pair}:${quoteAsset}` : pair));
+      .map((pair) =>
+        marketType === MarketType.FUTURES ? `${pair}:${quoteAsset}` : pair
+      );
 
     cache.exchanges[cacheKey] = { data: pairs, timestamp: Date.now() };
     return pairs;
@@ -97,18 +117,25 @@ const fetchExchangePairs = async (
 };
 
 const fetchLunarcrushCoins = async () => {
-  if (cache.lunarcrush && Date.now() - cache.lunarcrush.timestamp < CACHE_TTL_LUNARCRUSH) {
+  if (
+    cache.lunarcrush &&
+    Date.now() - cache.lunarcrush.timestamp < CACHE_TTL_LUNARCRUSH
+  ) {
     console.log(`⚡ Returning cached LunarCrush data`);
     return cache.lunarcrush.data;
   }
 
   try {
-    const response = await axios.get("https://lunarcrush.com/api4/public/coins/list/v1", {
-      headers: { Authorization: `Bearer ${BEARER_TOKEN}` },
-    });
+    const response = await axios.get(
+      "https://lunarcrush.com/api4/public/coins/list/v1",
+      {
+        headers: { Authorization: `Bearer ${BEARER_TOKEN}` },
+      }
+    );
 
     const data = response.data.data || [];
-    if (!data.length) throw new Error("LunarCrush API returned an empty dataset.");
+    if (!data.length)
+      throw new Error("LunarCrush API returned an empty dataset.");
 
     cache.lunarcrush = { data, timestamp: Date.now() };
     return data;
@@ -121,28 +148,49 @@ const fetchLunarcrushCoins = async () => {
 app.get("/fetchPairs/:exchange", async (req: Request, res: Response) => {
   try {
     const exchangeName = req.params.exchange.toLowerCase();
-    const limit = parseInt(req.query.limit, 10) || 50;
-    const quoteAsset = req.query.quoteAsset || "USDT";
-    const marketType = (req.query.marketType as MarketType) || MarketType.FUTURES;
-    const lunarMode = (req.query.lunarMode as LunarcrushMode) || LunarcrushMode.ALT_RANK;
+    const limit = parseInt(req.query.limit as string, 10) || 50;
+    const quoteAsset = (req.query.quoteAsset as string) || "USDT";
+    const marketType =
+      (req.query.marketType as MarketType) || MarketType.FUTURES;
+    const lunarMode =
+      (req.query.lunarMode as LunarcrushMode) || LunarcrushMode.ALT_RANK;
 
-    console.log(`🔍 Fetching data for ${exchangeName} with params:`, { quoteAsset, marketType, lunarMode });
+    console.log(`🔍 Fetching data for ${exchangeName} with params:`, {
+      quoteAsset,
+      marketType,
+      lunarMode,
+    });
 
     const [exchangePairs, lunarcrushData] = await Promise.all([
       fetchExchangePairs(exchangeName, quoteAsset, marketType),
       fetchLunarcrushCoins(),
     ]);
 
-    const sortedLunarcrush = lunarcrushData.sort((a, b) => a[lunarMode] - b[lunarMode]);
-    const lunarcrushCoins = sortedLunarcrush.map((coin) => coin.symbol);
+    const sortedLunarcrush = lunarcrushData.sort(
+      (a: any, b: any) => a[lunarMode] - b[lunarMode]
+    );
+
+    const lunarcrushCoins: string[] = sortedLunarcrush.map(
+      (coin: LunarcrushCoin) => coin.symbol
+    );
 
     const intersection = lunarcrushCoins
-      .map((coin) => exchangePairs.find((pair) => pair.startsWith(`${coin}/`)) || null)
+      .map(
+        (coin: string) =>
+          exchangePairs.find((pair) => pair.startsWith(`${coin}/`)) || null
+      )
       .filter(Boolean);
 
-    console.log(`✅ Matching Pairs:`, intersection.length, JSON.stringify(intersection.slice(0, limit)));
+    console.log(
+      `✅ Matching Pairs:`,
+      intersection.length,
+      JSON.stringify(intersection.slice(0, limit))
+    );
 
-    res.json({ pairs: intersection.slice(0, limit), refresh_period: CACHE_TTL_LUNARCRUSH / 1000 });
+    res.json({
+      pairs: intersection.slice(0, limit),
+      refresh_period: CACHE_TTL_LUNARCRUSH / 1000,
+    });
   } catch (error) {
     console.error(`❌ Error in /fetchPairs/:exchange:`, error);
     res.status(500).json({ error: error.message });
