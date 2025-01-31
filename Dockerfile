@@ -5,4 +5,4 @@ RUN bun install --production
 COPY ./src/* .
 ENV PORT=8080
 EXPOSE 8080
-CMD ["bun", "index.js"]
+CMD ["bun", "index.ts"]
