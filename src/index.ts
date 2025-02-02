@@ -199,6 +199,11 @@ app.get("/fetchPairs/:exchange", async (req: Request, res: Response) => {
   }
 });
 
+app.get("topPairs/:exchange", async (req: Request, res: Response) => {
+  const limit = parseInt(req.query.limit as string, 10) || 50;
+});
+
+
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
 export default app;
