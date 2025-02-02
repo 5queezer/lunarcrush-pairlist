@@ -2,7 +2,7 @@ import express, { Request, Response } from "express";
 import axios from "axios";
 import axiosRetry from "axios-retry";
 import cors from "cors";
-import ccxt, { Exchange } from "ccxt";
+import ccxt from "ccxt";
 import dotenv from "dotenv";
 
 dotenv.config();
