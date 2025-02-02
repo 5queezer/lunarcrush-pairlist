@@ -174,14 +174,11 @@ app.get("/fetchPairs/:exchange", async (req: Request, res: Response) => {
       (coin: LunarcrushCoin) => coin.symbol
     );
 
-    const stripLeadingOneZeros = (input: string): string =>
-      input.replace(/^1(?:0)+/, "");
-
     const intersection = lunarcrushCoins
       .map(
         (coin: string) =>
           exchangePairs
-            .map(stripLeadingOneZeros)
+            .map((pair) => pair.replace(/^1(?:0)+/, ""))
             .find((pair) => pair.startsWith(`${coin}/`)) || null
       )
       .filter(Boolean);
