@@ -73,7 +73,7 @@ const SUPPORTED_EXCHANGES = {
   hyperliquid: new ccxt.hyperliquid({ enableRateLimit: true }),
 };
 
-const fetchExchangePairs = async (
+export const fetchExchangePairs = async (
   exchangeName: string,
   quoteAsset = "USDT",
   marketType = MarketType.SPOT
@@ -116,7 +116,7 @@ const fetchExchangePairs = async (
   }
 };
 
-const fetchLunarcrushCoins = async () => {
+export const fetchLunarcrushCoins = async () => {
   if (
     cache.lunarcrush &&
     Date.now() - cache.lunarcrush.timestamp < CACHE_TTL_LUNARCRUSH
@@ -174,10 +174,15 @@ app.get("/fetchPairs/:exchange", async (req: Request, res: Response) => {
       (coin: LunarcrushCoin) => coin.symbol
     );
 
+    const stripLeadingOneZeros = (input: string): string =>
+      input.replace(/^1(?:0)+/, "");
+
     const intersection = lunarcrushCoins
       .map(
         (coin: string) =>
-          exchangePairs.find((pair) => pair.startsWith(`${coin}/`)) || null
+          exchangePairs
+            .map(stripLeadingOneZeros)
+            .find((pair) => pair.startsWith(`${coin}/`)) || null
       )
       .filter(Boolean);
 
@@ -199,3 +204,4 @@ app.get("/fetchPairs/:exchange", async (req: Request, res: Response) => {
 
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+export default app;
