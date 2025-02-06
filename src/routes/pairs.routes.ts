@@ -14,7 +14,10 @@ router.get("/pairs/:exchange/:marketType/:lunarMode", async (req, res) => {
     const { exchange, marketType: marketTypeParam, lunarMode } = req.params;
     const marketType = marketTypeParam as MarketType;
     const limit = parseInt(req.query.limit as string, 10) || 50;
-    const quoteAsset = (req.query.quoteAsset as string) || "USDT";
+    const quoteAsset =
+      (req.query.quoteAsset as string) || exchange == "hyperliquid"
+        ? "USDC"
+        : "USDT";
 
     const [exchangePairs, lunarcrushData] = await Promise.all([
       fetchExchangePairs(exchange, quoteAsset, marketType),
