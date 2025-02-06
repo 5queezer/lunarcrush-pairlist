@@ -1,5 +1,6 @@
-import ccxt from "ccxt";
+import * as ccxt from "ccxt";
 import { cache, CacheData } from "../utils/cacheHandler";
+import { Market } from "ccxt";
 import { ENV } from "../config/env";
 
 export enum MarketType {
@@ -7,19 +8,19 @@ export enum MarketType {
   FUTURES = "futures",
 }
 
-const CCXTMarketType = {
+export const CCXTMarketType = {
   [MarketType.SPOT]: "spot",
   [MarketType.FUTURES]: "swap",
 };
 
-const SUPPORTED_EXCHANGES = {
+export const SUPPORTED_EXCHANGES: { [key: string]: ccxt.Exchange } = {
   binance: new ccxt.binance({ enableRateLimit: true }),
   bybit: new ccxt.bybit({ enableRateLimit: true }),
   hyperliquid: new ccxt.hyperliquid({ enableRateLimit: true }),
 };
 
 export const fetchExchangePairs = async (
-  exchangeName: string,
+  exchangeName: keyof typeof SUPPORTED_EXCHANGES,
   quoteAsset = "USDT",
   marketType = MarketType.SPOT
 ) => {
@@ -39,19 +40,21 @@ export const fetchExchangePairs = async (
   try {
     const exchange = SUPPORTED_EXCHANGES[exchangeName];
     await exchange.loadMarkets();
-    const markets = Object.values(exchange.markets);
+    const markets = Object.values(exchange.markets || {});
 
     const pairs = markets
       .filter(
         (market) =>
+          market &&
           market.type === CCXTMarketType[marketType] &&
           market.quote === quoteAsset &&
           market.active
       )
-      .map((market) => `${market.base}/${market.quote}`)
+      .map((market) => market && `${market.base}/${market.quote}`)
       .map((pair) =>
         marketType === MarketType.FUTURES ? `${pair}:${quoteAsset}` : pair
-      );
+      )
+      .filter((pair): pair is string => !!pair);
 
     cache.exchanges[cacheKey] = { data: pairs, timestamp: Date.now() };
     return pairs;

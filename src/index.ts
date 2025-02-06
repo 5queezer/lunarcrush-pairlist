@@ -8,6 +8,6 @@ app.use(cors());
 app.use(express.json());
 app.use("/api", pairsRoutes);
 
-app.listen(ENV.PORT, () =>
-  console.log(`🚀 Server running on port ${ENV.PORT}`)
-);
+const server = app.listen(ENV.PORT, () => console.log(`🚀 Server running on port ${ENV.PORT}`));
+
+export { app, server }; // Export both app and server

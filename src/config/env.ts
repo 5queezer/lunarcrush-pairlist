@@ -12,9 +12,9 @@ export const ENV = {
     "cache.json"
   ),
   CACHE_TTL_EXCHANGE:
-    parseInt(process.env.CACHE_TTL_EXCHANGE || "0") || 3600000, // 60 min
+    parseInt(process.env.CACHE_TTL_EXCHANGE || "0") / 1000 || 3600000, // 60 min
   CACHE_TTL_LUNARCRUSH:
-    parseInt(process.env.CACHE_TTL_LUNARCRUSH || "0") || 60000, // 1 min
+    parseInt(process.env.CACHE_TTL_LUNARCRUSH || "0") / 1000 || 60000, // 1 min
 };
 
 if (!ENV.BEARER_TOKEN) throw new Error("LunarCrush token not provided");

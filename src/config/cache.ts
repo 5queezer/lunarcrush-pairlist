@@ -1,4 +1,4 @@
-import fs from "fs";
+import * as fs from "fs"; // Fix import issue
 import { ENV } from "./env";
 
 if (!fs.existsSync(ENV.CACHE_DIR)) {
