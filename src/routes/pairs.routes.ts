@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { fetchExchangePairs, MarketType } from "../services/exchange.service";
 import { fetchLunarcrushCoins } from "../services/lunarcrush.service";
+import { ENV } from "../config/env";
 
 const router = Router();
 
@@ -9,7 +10,7 @@ interface LunarcrushCoin {
   symbol: string;
 }
 
-router.get("/pairs/:exchange/:marketType/:lunarMode", async (req, res) => {
+router.get("/lunar/:exchange/:marketType/:lunarMode", async (req, res) => {
   try {
     const { exchange, marketType: marketTypeParam, lunarMode } = req.params;
     const marketType = marketTypeParam as MarketType;
@@ -39,7 +40,10 @@ router.get("/pairs/:exchange/:marketType/:lunarMode", async (req, res) => {
       )
       .filter(Boolean);
 
-    res.json({ pairs: intersection.slice(0, limit) });
+    res.json({
+      pairs: intersection.slice(0, limit),
+      refresh_period: ENV.CACHE_TTL_LUNARCRUSH,
+    });
   } catch (error) {
     res.status(500).json({ error: (error as Error).message });
   }

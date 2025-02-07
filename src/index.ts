@@ -6,7 +6,7 @@ import { ENV } from "./config/env";
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use("/api", pairsRoutes);
+app.use(`${ENV.API_PREFIX || ""}/pairlist`, pairsRoutes);
 
 const server = app.listen(ENV.PORT, () => console.log(`🚀 Server running on port ${ENV.PORT}`));
 

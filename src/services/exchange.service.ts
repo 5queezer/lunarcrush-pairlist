@@ -1,6 +1,5 @@
 import * as ccxt from "ccxt";
-import { cache, CacheData } from "../utils/cacheHandler";
-import { Market } from "ccxt";
+import { cache } from "../utils/cacheHandler";
 import { ENV } from "../config/env";
 
 export enum MarketType {

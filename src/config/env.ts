@@ -15,6 +15,7 @@ export const ENV = {
     parseInt(process.env.CACHE_TTL_EXCHANGE || "0") / 1000 || 3600000, // 60 min
   CACHE_TTL_LUNARCRUSH:
     parseInt(process.env.CACHE_TTL_LUNARCRUSH || "0") / 1000 || 60000, // 1 min
+  API_PREFIX: process.env.API_PREFIX || "",
 };
 
 if (!ENV.BEARER_TOKEN) throw new Error("LunarCrush token not provided");
