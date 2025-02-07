@@ -1,6 +1,6 @@
 import axios from "axios";
-import { cache } from "../utils/cacheHandler";
-import { ENV } from "../config/env";
+import { cache } from "@/utils/cacheHandler";
+import { ENV } from "@/config/env";
 
 export const fetchLunarcrushCoins = async () => {
   if (

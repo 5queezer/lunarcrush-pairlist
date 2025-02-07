@@ -1,8 +1,8 @@
 FROM oven/bun:latest
 WORKDIR /app
-COPY ./package.json ./package-lock.json ./
+COPY ./package.json ./package-lock.json ./tsconfig.json ./
 RUN bun install --production
-COPY ./src/* .
+COPY ./src src
 ENV PORT=8080
-EXPOSE 8080
-CMD ["bun", "index.ts"]
+EXPOSE ${PORT}
+CMD ["bun", "run", "src/index.ts"]

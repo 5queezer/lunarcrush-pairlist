@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { fetchExchangePairs, MarketType } from "../services/exchange.service";
-import { fetchLunarcrushCoins } from "../services/lunarcrush.service";
-import { ENV } from "../config/env";
+import { fetchExchangePairs, MarketType } from "@/services/exchange.service";
+import { fetchLunarcrushCoins } from "@/services/lunarcrush.service";
+import { ENV } from "@/config/env";
 
 const router = Router();
 

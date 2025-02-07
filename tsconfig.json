@@ -2,6 +2,8 @@
   "include": ["jest.config.js", "src/**/*.ts"],
   "exclude": ["node_modules", "tests", "**/*.test.ts", "**/*.spec.ts"],
   "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
     "baseUrl": "./",
     "paths": {
       "@/*": ["src/*"]

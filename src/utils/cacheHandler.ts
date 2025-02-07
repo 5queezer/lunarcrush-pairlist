@@ -1,5 +1,5 @@
 import fs from "fs";
-import { ENV } from "../config/env";
+import { ENV } from "@/config/env";
 
 export interface CacheData<T> {
   data: T;
