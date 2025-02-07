@@ -1,7 +1,14 @@
 {
+  "include": ["jest.config.js", "src/**/*.ts"],
+  "exclude": ["node_modules", "tests", "**/*.test.ts", "**/*.spec.ts"],
   "compilerOptions": {
-    "moduleResolution": "node",
+    "baseUrl": "./",
+    "paths": {
+      "@/*": ["src/*"]
+    },
     "outDir": "dist",
-    "rootDir": "src"
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true
   }
 }

@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
-import pairsRoutes from "./routes/pairs.routes";
-import { ENV } from "./config/env";
+import pairsRoutes from "@/routes/pairs.routes";
+import { ENV } from "@/config/env";
 
 const app = express();
 app.use(cors());

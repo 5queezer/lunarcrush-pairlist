@@ -1,0 +1,14 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.server = exports.app = void 0;
+var express_1 = require("express");
+var cors_1 = require("cors");
+var pairs_routes_1 = require("@/routes/pairs.routes");
+var env_1 = require("@/config/env");
+var app = (0, express_1.default)();
+exports.app = app;
+app.use((0, cors_1.default)());
+app.use(express_1.default.json());
+app.use("".concat(env_1.ENV.API_PREFIX || "", "/pairlist"), pairs_routes_1.default);
+var server = app.listen(env_1.ENV.PORT, function () { return console.log("\uD83D\uDE80 Server running on port ".concat(env_1.ENV.PORT)); });
+exports.server = server;
