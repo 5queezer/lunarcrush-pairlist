@@ -16,6 +16,10 @@ export const SUPPORTED_EXCHANGES: { [key: string]: ccxt.Exchange } = {
   binance: new ccxt.binance({ enableRateLimit: true }),
   bybit: new ccxt.bybit({ enableRateLimit: true }),
   hyperliquid: new ccxt.hyperliquid({ enableRateLimit: true }),
+  okx: new ccxt.okx({ enableRateLimit: true }),
+  bitmart: new ccxt.bitmart({ enableRateLimit: true }),
+  cryptocom: new ccxt.cryptocom({ enableRateLimit: true }),
+  coinbase: new ccxt.coinbase({ enableRateLimit: true }),
 };
 
 export const fetchExchangePairs = async (
