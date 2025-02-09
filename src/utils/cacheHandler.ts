@@ -44,7 +44,8 @@ export interface CacheData<T> {
 }
 
 export interface Cache {
-  lunarcrush: CacheData<CryptoAsset> | null;
+  lunarcrushPairs: CacheData<CryptoAsset>;
+  lunarCrushHistory: { [key: string]: CacheData<string[]> };
   exchanges: { [key: string]: CacheData<string[]> };
 }
 
@@ -57,7 +58,7 @@ export const loadCacheFromFile = (): Cache => {
   } catch (error) {
     console.error("❌ Error loading cache from file:", error);
   }
-  return { lunarcrush: null, exchanges: {} };
+  return { lunarcrushPairs: null, lunarCrushHistory: {}, exchanges: {} };
 };
 
 export const saveCacheToFile = (cache: Cache) => {

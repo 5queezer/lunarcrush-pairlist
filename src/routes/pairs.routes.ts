@@ -30,6 +30,8 @@ router.get("/lunar/:exchange/:marketType/:lunarMode", async (req, res) => {
       fetchLunarcrushCoins(),
     ]);
 
+    // console.debug(lunarcrushData);
+
     const sortedLunarcrush = lunarcrushData
       .slice()
       .filter((coin: CryptoAsset) => {

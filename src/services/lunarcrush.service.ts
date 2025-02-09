@@ -23,12 +23,10 @@ const limitedApiClient = rateLimit(apiClient, {
   perMilliseconds: 60 * 1000, // 1-minute window
 });
 
-// Cache Object
-const cacheKey = "lunarcrush";
 export const cacheTTL = Math.max(60_000 / requestsPerMinute, 10_000); // Minimum 10s
 
 export const fetchLunarcrushCoins = async () => {
-  const cachedData = cache[cacheKey];
+  const cachedData = cache.lunarcrushPairs;
 
   if (cachedData) {
     const timeElapsed = Date.now() - cachedData.timestamp;
@@ -52,7 +50,7 @@ export const fetchLunarcrushCoins = async () => {
     if (!data.length)
       throw new Error("LunarCrush API returned an empty dataset.");
 
-    cache[cacheKey] = { data, timestamp: Date.now() };
+    cache.lunarcrushPairs = { data, timestamp: Date.now() };
     console.log("🍀 Returning fresh LunarCrush data");
     return data;
   } catch (error) {
@@ -66,7 +64,6 @@ export const fetchLunarcrushCoins = async () => {
   }
 };
 
-// export const fetchLunarcrushCoin = async (baseAsset: string) => {
-//   const cachedData = cache[cacheKey];
-//   const coinName = cachedData.data.filter(d => d.)
-// };
+export const fetchLunarcrushCoin = async (baseAsset: string) => {
+  const cachedData = cache.lunarCrushHistory;
+};

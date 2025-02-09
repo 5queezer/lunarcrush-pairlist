@@ -1,1 +1,52 @@
 # 
+
+A CrytoAsset response looks like this
+
+```json
+  {
+    id: 169,
+    symbol: "FET",
+    name: "Fetch",
+    price: 0.7107922567775068,
+    price_btc: 0.000007451327247342504,
+    volume_24h: 124655937.65,
+    volatility: 0.0267,
+    circulating_supply: 2390224782.5,
+    max_supply: 2719493897,
+    percent_change_1h: -1.735105198471,
+    percent_change_24h: -7.26300805892,
+    percent_change_7d: -28.874032450156,
+    market_cap: 1698953267.36,
+    market_cap_rank: 71,
+    interactions_24h: 764785,
+    social_volume_24h: 6246,
+    social_dominance: 1.0931830950418213,
+    market_dominance: 0.054706720805704614,
+    market_dominance_prev: 0.053308437993835875,
+    galaxy_score: 45,
+    galaxy_score_previous: 43,
+    alt_rank: 850,
+    alt_rank_previous: 41,
+    sentiment: 79,
+    categories: "nft,ai,ai-agents",
+    blockchains: [
+      [Object ...], [Object ...], [Object ...]
+    ],
+    percent_change_30d: -46.45966230155,
+    last_updated_price: 1739031694,
+    last_updated_price_by: "cmc_stream",
+    topic: "fet fetch",
+    logo: "https://cdn.lunarcrush.com/fetch.png",
+  },
+```
+
+Therefore, the lunarMode can be 
+galaxy_score, 
+galaxy_score_previous, 
+alt_rank, 
+alt_rank_previous, 
+percent_change_30d
+sentiment
+social_dominance
+market_dominance
+market_dominance_prev
