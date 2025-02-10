@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { cache } from "@/utils/cacheHandler";
 import { ENV } from "@/config/env";
 import rateLimit from "axios-rate-limit";
@@ -54,13 +54,14 @@ export const fetchLunarcrushCoins = async () => {
     console.log("🍀 Returning fresh LunarCrush data");
     return data;
   } catch (error) {
-    if (error.response?.status === 429 && cachedData) {
-      console.warn("⚠️ Rate limit hit! Returning cached data.");
-      return cachedData.data;
+    if (error instanceof AxiosError) {
+      if (error.response?.status === 429 && cache.lunarcrushPairs) {
+        console.warn("⚠️ Rate limit hit! Returning cached data.");
+        return cache.lunarcrushPairs.data;
+      }
     }
-
     console.error("❌ Error fetching LunarCrush data:", error);
-    throw new Error("Failed to fetch LunarCrush data");
+    throw error;
   }
 };
 
