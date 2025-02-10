@@ -7,8 +7,8 @@ type Plans = "discover" | "pro";
 
 interface EnvType {
   PORT: number;
-  HOST: string;
-  HTTPS: "http" | "https";
+  HOST: string | null;
+  HTTPS: "http" | "https" | null;
   BEARER_TOKEN: string;
   CACHE_FILE_PATH: string;
   CACHE_TTL_EXCHANGE: number;
