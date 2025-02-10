@@ -1,6 +1,6 @@
 # 
 
-A CrytoAsset response looks like this
+A Response from lunarcrush looks like this
 
 ```json
   {

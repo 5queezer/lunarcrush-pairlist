@@ -30,8 +30,6 @@ router.get("/lunar/:exchange/:marketType/:lunarMode", async (req, res) => {
       fetchLunarcrushCoins(),
     ]);
 
-    // console.debug(lunarcrushData);
-
     const sortedLunarcrush = lunarcrushData
       .sort((a: LunarcrushCoin, b: LunarcrushCoin) =>
         reverse
@@ -50,7 +48,8 @@ router.get("/lunar/:exchange/:marketType/:lunarMode", async (req, res) => {
     const intersection = lunarcrushCoins
       .map(
         (coin: string) =>
-          exchangePairs.find((pair) => pair.startsWith(`${coin}/`)) || null
+          exchangePairs.find((pair: string) => pair.startsWith(`${coin}/`)) ||
+          null
       )
       .filter(Boolean);
 
