@@ -4,7 +4,6 @@ WORKDIR /app
 # Copy package files first for caching
 COPY package.json bun.lock ./
 RUN bun install
-RUN bun add axios-rate-limit
 
 # Copy the rest of the application
 COPY . .
