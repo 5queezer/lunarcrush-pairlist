@@ -17,14 +17,15 @@ router.get("/lunar/:exchange/:marketType/:lunarMode", async (req, res) => {
     const limit = parseInt(req.query.limit as string) || 50;
     const min = parseInt(req.query.min as string) || null;
     const max = parseInt(req.query.max as string) || null;
-    const reverse =
-      String(req.query.reverse || "").toLowerCase() == "true" ||
-      req.query.reverse == "1";
+    const sort = String(req.query.sort || "asc").toLowerCase();
     const quoteAsset =
       (req.query.quoteAsset as string) || exchange == "hyperliquid"
         ? "USDC"
         : "USDT";
 
+    if (sort !== "asc" && sort !== "desc") {
+      throw new Error("sort can be either asc or desc");
+    }
     const [exchangePairs, lunarcrushData] = await Promise.all([
       fetchExchangePairs(exchange, quoteAsset, marketType),
       fetchLunarcrushCoins(),
@@ -32,7 +33,7 @@ router.get("/lunar/:exchange/:marketType/:lunarMode", async (req, res) => {
 
     const sortedLunarcrush = lunarcrushData
       .sort((a: LunarcrushCoin, b: LunarcrushCoin) =>
-        reverse
+        sort === "desc"
           ? Number(b[lunarMode]) - Number(a[lunarMode])
           : Number(a[lunarMode]) - Number(b[lunarMode])
       )
