@@ -18,7 +18,7 @@ router.get("/lunar/:exchange/:marketType/:lunarMode", async (req, res) => {
     const min = parseInt(req.query.min as string) || null;
     const max = parseInt(req.query.max as string) || null;
     const reverse =
-      String(req.query.reverse || "false").toLowerCase() == "true" ||
+      String(req.query.reverse || "").toLowerCase() == "true" ||
       req.query.reverse == "1";
     const quoteAsset =
       (req.query.quoteAsset as string) || exchange == "hyperliquid"
@@ -33,16 +33,15 @@ router.get("/lunar/:exchange/:marketType/:lunarMode", async (req, res) => {
     // console.debug(lunarcrushData);
 
     const sortedLunarcrush = lunarcrushData
-      .slice()
-      .filter((coin: CryptoAsset) => {
-        const value = coin[lunarMode];
-        return (max === null || value <= max) && (min === null || value >= min);
-      })
       .sort((a: LunarcrushCoin, b: LunarcrushCoin) =>
         reverse
           ? Number(b[lunarMode]) - Number(a[lunarMode])
           : Number(a[lunarMode]) - Number(b[lunarMode])
-      );
+      )
+      .filter((coin: CryptoAsset) => {
+        const value = coin[lunarMode];
+        return (max === null || value <= max) && (min === null || value >= min);
+      });
 
     const lunarcrushCoins = sortedLunarcrush.map(
       (coin: { symbol: string }) => coin.symbol

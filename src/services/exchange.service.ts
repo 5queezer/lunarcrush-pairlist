@@ -20,6 +20,7 @@ export const SUPPORTED_EXCHANGES: { [key: string]: ccxt.Exchange } = {
   bitmart: new ccxt.bitmart({ enableRateLimit: true }),
   cryptocom: new ccxt.cryptocom({ enableRateLimit: true }),
   coinbase: new ccxt.coinbase({ enableRateLimit: true }),
+  // add more exchanges here as you wish
 };
 
 export const fetchExchangePairs = async (
