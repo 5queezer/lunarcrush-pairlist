@@ -1,13 +1,12 @@
 FROM oven/bun:latest
 WORKDIR /app
 
-# Copy only necessary files first for better caching
+# Copy package files first for caching
 COPY package.json bun.lock ./
-RUN bun install --production
+RUN bun install
 
-# Copy the rest of the project
-COPY tsconfig.json ./
-COPY src ./src
+# Copy the rest of the application
+COPY . .
 
 ENV PORT=8080
 EXPOSE ${PORT}
