@@ -9,7 +9,7 @@ interface EnvType {
   PORT: number;
   HOST: string | null;
   HTTPS: "http" | "https" | null;
-  BEARER_TOKEN: string;
+  LUNARCRUSH_TOKEN: string;
   CACHE_FILE_PATH: string;
   CACHE_TTL_EXCHANGE: number;
   PLAN_LUNARCRUSH: "discover" | "pro";
@@ -20,7 +20,7 @@ export const ENV: EnvType = {
   PORT: parseInt(process.env.PORT || "8080"),
   HOST: null,
   HTTPS: null,
-  BEARER_TOKEN: process.env.LUNARCRUSH_TOKEN || "",
+  LUNARCRUSH_TOKEN: process.env.LUNARCRUSH_TOKEN || "",
   CACHE_FILE_PATH: path.join(
     process.env.CACHE_DIR || path.join(__dirname, "../cache"),
     "cache.json"
@@ -31,4 +31,4 @@ export const ENV: EnvType = {
   API_PREFIX: process.env.API_PREFIX || "",
 };
 
-if (!ENV.BEARER_TOKEN) throw new Error("LunarCrush token not provided");
+if (!ENV.LUNARCRUSH_TOKEN) throw new Error("LunarCrush token not provided");

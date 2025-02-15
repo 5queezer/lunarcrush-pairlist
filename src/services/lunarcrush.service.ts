@@ -1,41 +1,85 @@
-import axios, { AxiosError } from "axios";
+import axios, { AxiosError, AxiosResponse } from "axios";
 import { cache } from "@/utils/cacheHandler";
 import { ENV } from "@/config/env";
 import rateLimit from "axios-rate-limit";
 
-// API Configuration
+interface RateLimitInfo {
+  perDay: number;
+  perMinute: number;
+  dayReset: number;
+  minuteReset: number;
+  timestamp: number;
+}
+
+interface CachedResponse {
+  data: any[];
+  timestamp: number;
+}
+
 const apiClient = axios.create({
   baseURL: "https://lunarcrush.com/api4/public",
-  headers: { Authorization: `Bearer ${ENV.BEARER_TOKEN}` },
+  headers: { Authorization: `Bearer ${ENV.LUNARCRUSH_TOKEN}` },
 });
 
-// Rate Limit Setup
-const plan = ENV.PLAN_LUNARCRUSH;
-const rateLimitPerDay =
-  plan === "discover" ? 2_000 : plan === "pro" ? 20_000 : 0;
-if (!rateLimitPerDay) {
-  throw new Error("Invalid lunarcrush plan selected.");
-}
-const requestsPerMinute = rateLimitPerDay / (24 * 60);
+let rateLimitInfo: RateLimitInfo | null = null;
 
-const limitedApiClient = rateLimit(apiClient, {
-  maxRequests: requestsPerMinute,
-  perMilliseconds: 60 * 1000, // 1-minute window
-});
+const updateRateLimits = (response: AxiosResponse) => {
+  const headers = response.headers;
+  const dayLimit = parseInt(headers["x-rate-limit-day"]);
+  const minuteLimit = parseInt(headers["x-rate-limit-minute"]);
+  const dayReset = parseInt(headers["x-rate-limit-day-reset"]);
+  const minuteReset = parseInt(headers["x-rate-limit-minute-reset"]);
 
-export const cacheTTL = Math.max(60_000 / requestsPerMinute, 10_000); // Minimum 10s
+  if (dayLimit && minuteLimit && dayReset && minuteReset) {
+    rateLimitInfo = {
+      perDay: dayLimit,
+      perMinute: minuteLimit,
+      dayReset,
+      minuteReset,
+      timestamp: Date.now(),
+    };
+    configureLimiter();
+    if (dayLimit === 20_000 && minuteLimit === 100) {
+      console.info(`💹 Plan 'Pro' detected`);
+    } else {
+      console.info(`🔰 Plan 'Discover' detected`);
+    }
+  }
+};
+
+let limitedApiClient = apiClient;
+const configureLimiter = () => {
+  if (!rateLimitInfo) {
+    // If no rate limits are set yet, allow requests but they'll be governed by the API's limits
+    limitedApiClient = apiClient;
+    return;
+  }
+
+  limitedApiClient = rateLimit(apiClient, {
+    maxRequests: rateLimitInfo.perMinute,
+    perMilliseconds: 60 * 1000, // 1-minute window
+  });
+};
+
+configureLimiter();
+
+// Dynamic cache TTL calculation
+export const getCacheTTL = () => {
+  if (!rateLimitInfo) return 10_000;
+  return Math.max(60_000 / rateLimitInfo.perMinute, 10_000); // 10s
+};
 
 export const fetchLunarcrushCoins = async () => {
-  const cachedData = cache.lunarcrushPairs;
+  const cachedData = cache.lunarcrushPairs as CachedResponse;
 
   if (cachedData) {
     const timeElapsed = Date.now() - cachedData.timestamp;
     const timeUntilExpiry = Math.max(
       0,
-      Math.ceil((cacheTTL - timeElapsed) / 1000)
+      Math.ceil((getCacheTTL() - timeElapsed) / 1000)
     );
 
-    if (timeElapsed < cacheTTL) {
+    if (timeElapsed < getCacheTTL()) {
       console.log(
         `⚡️ Returning cached LunarCrush data. Time until expiry: ${timeUntilExpiry} seconds.`
       );
@@ -45,6 +89,8 @@ export const fetchLunarcrushCoins = async () => {
 
   try {
     const response = await limitedApiClient.get("/coins/list/v1");
+
+    updateRateLimits(response);
 
     const data = response.data?.data || [];
     if (!data.length)
@@ -59,12 +105,13 @@ export const fetchLunarcrushCoins = async () => {
         console.warn("⚠️ Rate limit hit! Returning cached data.");
         return cache.lunarcrushPairs.data;
       }
+
+      // Update rate limits even on error responses
+      if (error.response) {
+        updateRateLimits(error.response);
+      }
     }
     console.error("❌ Error fetching LunarCrush data:", error);
     throw error;
   }
-};
-
-export const fetchLunarcrushCoin = async (baseAsset: string) => {
-  const cachedData = cache.lunarCrushHistory;
 };

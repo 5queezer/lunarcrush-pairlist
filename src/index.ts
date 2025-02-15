@@ -5,7 +5,16 @@ import fs from "fs";
 import pairsRoutes from "@/routes/pairs.routes";
 import healthRoutes from "@/routes/health.routes";
 import { ENV } from "@/config/env";
-import { cache, saveCacheToFile } from "@/utils/cacheHandler";
+import {
+  cache,
+  saveCacheToFile,
+  loadCacheFromFile,
+} from "@/utils/cacheHandler";
+import consoleStamp from "console-stamp";
+
+consoleStamp(console, {
+  format: ":date(yyyy/mm/dd HH:MM:ss)",
+});
 
 const app = express();
 app.use(cors());
@@ -44,4 +53,6 @@ const handleExit = (signal: NodeJS.Signals) => {
 process.on("SIGINT", handleExit);
 process.on("SIGTERM", handleExit);
 
+loadCacheFromFile();
+app.on("as", (parent) => {});
 export { app, server, cache };

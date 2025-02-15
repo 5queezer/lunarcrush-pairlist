@@ -1,6 +1,9 @@
 import { Router } from "express";
 import { fetchExchangePairs, MarketType } from "@/services/exchange.service";
-import { fetchLunarcrushCoins, cacheTTL } from "@/services/lunarcrush.service";
+import {
+  fetchLunarcrushCoins,
+  getCacheTTL,
+} from "@/services/lunarcrush.service";
 import { CryptoAsset } from "@/utils/cacheHandler";
 
 const router = Router();
@@ -9,6 +12,8 @@ interface LunarcrushCoin {
   [key: string]: number | string;
   symbol: string;
 }
+
+const ratelimits = {};
 
 router.get("/lunar/:exchange/:marketType/:lunarMode", async (req, res) => {
   try {
@@ -56,7 +61,7 @@ router.get("/lunar/:exchange/:marketType/:lunarMode", async (req, res) => {
 
     res.json({
       pairs: intersection.slice(0, limit),
-      refresh_period: Math.ceil(cacheTTL / 1000),
+      refresh_period: Math.ceil(getCacheTTL() / 1000),
     });
   } catch (error) {
     res.status(500).json({ error: (error as Error).message });

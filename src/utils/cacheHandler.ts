@@ -43,10 +43,15 @@ export interface CacheData<T> {
   timestamp: number;
 }
 
+type CacheDictType = { [key: string]: CacheData<string[]> };
+
 export interface Cache {
-  lunarcrushPairs: CacheData<CryptoAsset>;
-  lunarCrushHistory: { [key: string]: CacheData<string[]> };
-  exchanges: { [key: string]: CacheData<string[]> };
+  lunarcrushPairs: CacheData<CryptoAsset> | null;
+
+  lunarCrushHistory: CacheDictType;
+
+  // For the exchange (CoinGecko) metadata
+  exchanges: CacheDictType;
 }
 
 export const loadCacheFromFile = (): Cache => {
