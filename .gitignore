@@ -1,5 +1,9 @@
-.env*
+.env
+.env.*
 !.env.example
-node_modules
-.firebase/
-/src/cache/
+*.db
+*.db-shm
+*.db-wal
+coverage.out
+lunar-pairlist
+.DS_Store
