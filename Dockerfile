@@ -1,26 +1,21 @@
-# Stage 1: Build
-FROM oven/bun:latest AS builder
-WORKDIR /app
+# syntax=docker/dockerfile:1.7
+FROM golang:1.24.5-alpine3.22 AS build
+WORKDIR /src
+RUN apk add --no-cache ca-certificates
+COPY go.mod go.sum ./
+RUN go mod download
+COPY *.go ./
+COPY web ./web
+RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/lunar-pairlist . \
+    && mkdir -p /out/data \
+    && chown 65532:65532 /out/data
 
-# Copy package files first to leverage Docker cache
-COPY package.json bun.lock ./
-RUN bun install --frozen-lockfile
-
-# Copy the rest of the application source code
-COPY . .
-
-# Build the project
-RUN bun build ./src/index.ts --outdir ./dist --target node
-
-# Stage 2: Production runtime
-FROM oven/bun:latest AS runtime
-WORKDIR /app
-
-# Copy only necessary files from the builder stage
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/bun.lock ./bun.lock
-
-ENV PORT=8080
-EXPOSE ${PORT}
-
-CMD ["bun", "run", "dist/index.js"]
+FROM gcr.io/distroless/static-debian12:nonroot
+COPY --from=build /out/lunar-pairlist /app
+COPY --from=build --chown=65532:65532 /out/data /data
+ENV PORT=8080 DATA_DIR=/data
+VOLUME ["/data"]
+EXPOSE 8080
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 CMD ["/app", "-healthcheck"]
+USER nonroot:nonroot
+ENTRYPOINT ["/app"]
