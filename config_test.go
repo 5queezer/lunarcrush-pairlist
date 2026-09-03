@@ -52,7 +52,7 @@ func TestStrictConfigJSONRejectsUnknownAndInvalid(t *testing.T) {
 	unsupported := validConfig()
 	unsupported.SortMetric = "contributors_active"
 	if _, err := unsupported.Canonical(); err == nil {
-		t.Fatal("accepted metric that is not present in LunarCrush coins/list/v2")
+		t.Fatal("accepted metric that is not present in LunarCrush coins/list/v1")
 	}
 	supported := validConfig()
 	supported.SortMetric = "social_volume_24h"

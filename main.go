@@ -16,7 +16,7 @@ import (
 	"time"
 )
 
-const lunarAPIURL = "https://lunarcrush.com/api4/public/coins/list/v2"
+const lunarAPIURL = "https://lunarcrush.com/api4/public/coins/list/v1"
 const hyperliquidAPIURL = "https://api.hyperliquid.xyz/info"
 
 func main() {

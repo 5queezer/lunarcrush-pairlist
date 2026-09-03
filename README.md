@@ -161,7 +161,7 @@ Tests use temporary SQLite databases and `httptest` upstream servers. They do no
 - There is no user authentication, per-ID access control, or manual deletion API. Persistent growth is bounded to 1,000 configurations and 10,000 audit rows, and inactive configurations expire after 90 days.
 - New configurations are evaluated immediately from the latest shared snapshot. If no snapshot exists yet, one coalesced central refresh is triggered; a configuration never starts an independent per-ID collector.
 - Symbol matching intentionally supports exact, case-normalized ticker matches only. Contract aliases and renamed tokens are rejected rather than guessed.
-- The low-request collector requests the first 1,000 assets from `coins/list/v2`; active Hyperliquid markets outside that LunarCrush snapshot are excluded.
+- The low-request collector requests the first 1,000 assets from `coins/list/v1`; active Hyperliquid markets outside that LunarCrush snapshot are excluded. This endpoint also supports LunarCrush Discover subscriptions.
 - Upstream response compatibility is covered by fixtures, but LunarCrush subscription entitlements and live schema changes must be monitored operationally.
 
 ## License
